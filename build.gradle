@@ -22,20 +22,43 @@ runs {
     client {}
 
     server {
-        programArgument '--nogui'
+        arguments.add '--nogui'
     }
+}
+
+repositories {
+    maven {
+        name = "Iron's Maven - Release"
+        url = "https://code.redspace.io/releases"
+    }
+    maven {
+        name = "Iron's Maven - Snapshots"
+        url = "https://code.redspace.io/snapshots"
+    }
+    maven { url = "https://maven.theillusivec4.top" }
+    maven { url = "https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/" }
+    maven { url = "https://maven.kosmx.dev/" }
+    maven { url = "https://cursemaven.com" }
 }
 
 dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
     implementation "io.redspace:irons_spellbooks:${irons_spellbooks_version}"
-
-    testImplementation platform('org.junit:junit-bom:5.10.2')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 test {
-    useJUnitPlatform()
+    enabled = false
+}
+
+tasks.register('runUnitChecks', JavaExec) {
+    description = 'Runs plain JVM verification checks.'
+    group = 'verification'
+    classpath = files(sourceSets.test.output, sourceSets.main.output, configurations.testRuntimeClasspath)
+    mainClass = 'com.example.portableinscriptiontable.network.OpenInscriptionTablePayloadCheck'
+}
+
+check {
+    dependsOn tasks.named('runUnitChecks')
 }
 
 tasks.withType(ProcessResources).configureEach {

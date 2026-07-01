@@ -2,6 +2,7 @@
 /build/
 /run/
 /runs/
+/logs/
 /.idea/
 /*.iml
 /reference-irons-spells-n-spellbooks/
