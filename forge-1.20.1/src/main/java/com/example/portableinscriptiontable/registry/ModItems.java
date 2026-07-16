@@ -2,6 +2,7 @@ package com.example.portableinscriptiontable.registry;
 
 import com.example.portableinscriptiontable.PortableInscriptionTable;
 import com.example.portableinscriptiontable.item.CatRuneItem;
+import com.example.portableinscriptiontable.item.RandomSpellPoolEditorItem;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -23,12 +24,20 @@ public final class ModItems {
             () -> new CatRuneItem(new Item.Properties().stacksTo(1))
     );
 
+    public static final RegistryObject<Item> RANDOM_SPELL_POOL_EDITOR = ITEMS.register(
+            "random_spell_pool_editor",
+            () -> new RandomSpellPoolEditorItem(new Item.Properties().stacksTo(1))
+    );
+
     public static final RegistryObject<CreativeModeTab> CAT_RUNE_TAB = CREATIVE_TABS.register(
             ModRegistryIds.CAT_RUNE_TAB_ID.getPath(),
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.portable_inscription_table.cat_rune_tab"))
                     .icon(() -> new ItemStack(CAT_RUNE.get()))
-                    .displayItems((parameters, output) -> output.accept(CAT_RUNE.get()))
+                    .displayItems((parameters, output) -> {
+                        output.accept(CAT_RUNE.get());
+                        output.accept(RANDOM_SPELL_POOL_EDITOR.get());
+                    })
                     .build()
     );
 

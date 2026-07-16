@@ -1,6 +1,7 @@
 package com.example.portableinscriptiontable;
 
 import com.example.portableinscriptiontable.client.PortableInscriptionClientEvents;
+import com.example.portableinscriptiontable.command.QQIronSpellCommand;
 import com.example.portableinscriptiontable.balance.SpellBalanceStore;
 import com.example.portableinscriptiontable.balance.SpellProjectileBalanceEvents;
 import com.example.portableinscriptiontable.network.OpenInscriptionTableHandler;
@@ -27,6 +28,7 @@ public class PortableInscriptionTable {
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarted);
         MinecraftForge.EVENT_BUS.addListener(this::onDatapackSync);
         MinecraftForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
+        MinecraftForge.EVENT_BUS.addListener(QQIronSpellCommand::onRegisterCommands);
         MinecraftForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onSpellPreCast);
         MinecraftForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onSpellCast);
         MinecraftForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onEntityJoinLevel);

@@ -1,6 +1,7 @@
 package com.example.portableinscriptiontable.network;
 
 import com.example.portableinscriptiontable.menu.SpellbookReturnPolicy;
+import com.example.portableinscriptiontable.pool.SpellPoolPage;
 import com.example.portableinscriptiontable.balance.SpellBalanceValues;
 import com.example.portableinscriptiontable.client.SpellBalanceSelectionStyle;
 import com.example.portableinscriptiontable.client.SpellBalanceWidgetVisibility;
@@ -19,6 +20,8 @@ public final class OpenInscriptionTablePayloadCheck {
         visibleSpellBalanceWidgetsKeepFocus();
         selectedSpellBalanceRowUsesRaisedStyle();
         catRuneCreativeTabUsesStableId();
+        spellPoolPageClampsLowValues();
+        spellPoolPageClampsHighValues();
         ResourceLocation id = ModNetworkIds.OPEN_INSCRIPTION_TABLE;
 
         assertEquals("portable_inscription_table", id.getNamespace(), "payload namespace");
@@ -75,6 +78,14 @@ public final class OpenInscriptionTablePayloadCheck {
                 ModRegistryIds.CAT_RUNE_TAB_ID.toString(),
                 "cat rune creative tab id"
         );
+    }
+
+    private static void spellPoolPageClampsLowValues() {
+        assertEquals(1, SpellPoolPage.clamp(0), "spell pool low page clamp");
+    }
+
+    private static void spellPoolPageClampsHighValues() {
+        assertEquals(5, SpellPoolPage.clamp(99), "spell pool high page clamp");
     }
 
     private static void assertEquals(String expected, String actual, String label) {

@@ -9,7 +9,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 import java.util.Optional;
 
 public final class ModNetwork {
-    private static final String VERSION = "1.2";
+    private static final String VERSION = "1.4";
     public static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
             .named(ModNetworkIds.MAIN_CHANNEL)
             .networkProtocolVersion(() -> VERSION)
@@ -42,6 +42,16 @@ public final class ModNetwork {
                 SyncSpellBalancePayload::write,
                 SyncSpellBalancePayload::new,
                 SyncSpellBalancePayload::handle,
+                Optional.of(NetworkDirection.PLAY_TO_CLIENT));
+        CHANNEL.registerMessage(nextId++, SaveSpellPoolPayload.class,
+                SaveSpellPoolPayload::write,
+                SaveSpellPoolPayload::new,
+                SaveSpellPoolPayload::handle,
+                Optional.of(NetworkDirection.PLAY_TO_SERVER));
+        CHANNEL.registerMessage(nextId++, SyncSpellPoolPayload.class,
+                SyncSpellPoolPayload::write,
+                SyncSpellPoolPayload::new,
+                SyncSpellPoolPayload::handle,
                 Optional.of(NetworkDirection.PLAY_TO_CLIENT));
     }
 

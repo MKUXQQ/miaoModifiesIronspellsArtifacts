@@ -1,13 +1,16 @@
 package com.example.portableinscriptiontable;
 
 import com.example.portableinscriptiontable.client.PortableInscriptionClientEvents;
+import com.example.portableinscriptiontable.command.QQIronSpellCommand;
 import com.example.portableinscriptiontable.balance.SpellProjectileBalanceEvents;
 import com.example.portableinscriptiontable.balance.SpellBalanceStore;
 import com.example.portableinscriptiontable.network.OpenInscriptionTableHandler;
 import com.example.portableinscriptiontable.network.OpenInscriptionTablePayload;
 import com.example.portableinscriptiontable.network.RequestSpellBalancePayload;
 import com.example.portableinscriptiontable.network.SaveSpellBalancePayload;
+import com.example.portableinscriptiontable.network.SaveSpellPoolPayload;
 import com.example.portableinscriptiontable.network.SyncSpellBalancePayload;
+import com.example.portableinscriptiontable.network.SyncSpellPoolPayload;
 import com.example.portableinscriptiontable.registry.ModItems;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -31,6 +34,7 @@ public class PortableInscriptionTable {
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onDatapackSync);
         NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onPlayerLoggedIn);
+        NeoForge.EVENT_BUS.addListener(QQIronSpellCommand::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onSpellPreCast);
         NeoForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onSpellCast);
         NeoForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onEntityJoinLevel);
@@ -40,7 +44,7 @@ public class PortableInscriptionTable {
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(MOD_ID).versioned("1.6");
+        PayloadRegistrar registrar = event.registrar(MOD_ID).versioned("1.8");
         registrar.playToServer(
                 OpenInscriptionTablePayload.TYPE,
                 OpenInscriptionTablePayload.STREAM_CODEC,
@@ -60,6 +64,16 @@ public class PortableInscriptionTable {
                 SyncSpellBalancePayload.TYPE,
                 SyncSpellBalancePayload.STREAM_CODEC,
                 SyncSpellBalancePayload::handle
+        );
+        registrar.playToServer(
+                SaveSpellPoolPayload.TYPE,
+                SaveSpellPoolPayload.STREAM_CODEC,
+                SaveSpellPoolPayload::handle
+        );
+        registrar.playToClient(
+                SyncSpellPoolPayload.TYPE,
+                SyncSpellPoolPayload.STREAM_CODEC,
+                SyncSpellPoolPayload::handle
         );
     }
 

@@ -99,12 +99,13 @@ public class SpellBalanceScreen extends Screen {
     private void renderFixedLabels(GuiGraphics graphics) {
         graphics.drawString(font, title, 12, 8, 0xFFFFFF);
         graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_spell"), 12, 48, 0xD7D7D7);
-        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_survival"), width - 466, 48, 0xD7D7D7);
-        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_cast"), width - 390, 48, 0xD7D7D7);
-        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_cooldown"), width - 314, 48, 0xD7D7D7);
-        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_mana"), width - 238, 48, 0xD7D7D7);
-        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_power"), width - 162, 48, 0xD7D7D7);
-        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_projectile_speed"), width - 86, 48, 0xD7D7D7);
+        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_survival"), width - 542, 48, 0xD7D7D7);
+        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_cast"), width - 466, 48, 0xD7D7D7);
+        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_cooldown"), width - 390, 48, 0xD7D7D7);
+        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_mana"), width - 314, 48, 0xD7D7D7);
+        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_power"), width - 238, 48, 0xD7D7D7);
+        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_projectile_speed"), width - 162, 48, 0xD7D7D7);
+        graphics.drawString(font, Component.translatable("screen.portable_inscription_table.column_duration"), width - 86, 48, 0xD7D7D7);
     }
 
     private void updateRowWidgetVisibility(List<RowEditor> visible) {
@@ -163,6 +164,7 @@ public class SpellBalanceScreen extends Screen {
         private final EditBox mana;
         private final EditBox power;
         private final EditBox projectileSpeed;
+        private final EditBox duration;
         private final Button survival;
         private boolean survivalAllowed;
 
@@ -174,6 +176,7 @@ public class SpellBalanceScreen extends Screen {
             this.mana = box(format(source.values().manaCostMultiplier()));
             this.power = box(format(source.values().powerMultiplier()));
             this.projectileSpeed = box(format(source.values().projectileSpeed()));
+            this.duration = box(format(source.values().durationMultiplier()));
             this.survival = Button.builder(survivalLabel(), button -> {
                 survivalAllowed = !survivalAllowed;
                 button.setMessage(survivalLabel());
@@ -203,6 +206,7 @@ public class SpellBalanceScreen extends Screen {
             addRenderableWidget(mana);
             addRenderableWidget(power);
             addRenderableWidget(projectileSpeed);
+            addRenderableWidget(duration);
         }
 
         private void renderRowBackground(GuiGraphics graphics, int x, int y, int screenWidth) {
@@ -225,12 +229,13 @@ public class SpellBalanceScreen extends Screen {
         }
 
         private void show(int screenWidth, int y) {
-            place(survival, screenWidth - 472, y);
-            place(cast, screenWidth - 396, y);
-            place(cooldown, screenWidth - 320, y);
-            place(mana, screenWidth - 244, y);
-            place(power, screenWidth - 168, y);
-            place(projectileSpeed, screenWidth - 92, y);
+            place(survival, screenWidth - 548, y);
+            place(cast, screenWidth - 472, y);
+            place(cooldown, screenWidth - 396, y);
+            place(mana, screenWidth - 320, y);
+            place(power, screenWidth - 244, y);
+            place(projectileSpeed, screenWidth - 168, y);
+            place(duration, screenWidth - 92, y);
         }
 
         private void place(AbstractWidget widget, int x, int y) {
@@ -250,6 +255,7 @@ public class SpellBalanceScreen extends Screen {
             hide(mana, hiddenAfterRefresh);
             hide(power, hiddenAfterRefresh);
             hide(projectileSpeed, hiddenAfterRefresh);
+            hide(duration, hiddenAfterRefresh);
         }
 
         private void hide(AbstractWidget widget, boolean hiddenAfterRefresh) {
@@ -269,7 +275,7 @@ public class SpellBalanceScreen extends Screen {
 
         private boolean hasFocusedWidget() {
             return survival.isFocused() || cast.isFocused() || cooldown.isFocused() || mana.isFocused()
-                    || power.isFocused() || projectileSpeed.isFocused();
+                    || power.isFocused() || projectileSpeed.isFocused() || duration.isFocused();
         }
 
         private void renderFocusedBoxBorder(GuiGraphics graphics) {
@@ -279,6 +285,7 @@ public class SpellBalanceScreen extends Screen {
             renderWidgetBorderIfFocused(graphics, mana);
             renderWidgetBorderIfFocused(graphics, power);
             renderWidgetBorderIfFocused(graphics, projectileSpeed);
+            renderWidgetBorderIfFocused(graphics, duration);
         }
 
         private void renderWidgetBorderIfFocused(GuiGraphics graphics, AbstractWidget widget) {
@@ -308,7 +315,8 @@ public class SpellBalanceScreen extends Screen {
                     parse(mana.getValue(), source.values().manaCostMultiplier()),
                     parse(power.getValue(), source.values().powerMultiplier()),
                     survivalAllowed,
-                    parse(projectileSpeed.getValue(), source.values().projectileSpeed())
+                    parse(projectileSpeed.getValue(), source.values().projectileSpeed()),
+                    parse(duration.getValue(), source.values().durationMultiplier())
             );
             return new SpellBalanceRow(source.spellId(), source.displayName(), source.source(), source.castType(), values);
         }
