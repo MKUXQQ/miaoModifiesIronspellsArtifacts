@@ -8,6 +8,8 @@ import com.example.portableinscriptiontable.network.ModNetwork;
 import com.example.portableinscriptiontable.registry.ModItems;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.OnDatapackSyncEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -23,6 +25,8 @@ public class PortableInscriptionTable {
         ModItems.register(modEventBus);
         ModNetwork.register();
         MinecraftForge.EVENT_BUS.addListener(this::onServerStarted);
+        MinecraftForge.EVENT_BUS.addListener(this::onDatapackSync);
+        MinecraftForge.EVENT_BUS.addListener(this::onPlayerLoggedIn);
         MinecraftForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onSpellPreCast);
         MinecraftForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onSpellCast);
         MinecraftForge.EVENT_BUS.addListener(SpellProjectileBalanceEvents::onEntityJoinLevel);
@@ -32,6 +36,14 @@ public class PortableInscriptionTable {
     }
 
     private void onServerStarted(ServerStartedEvent event) {
+        SpellBalanceStore.loadAndApply();
+    }
+
+    private void onDatapackSync(OnDatapackSyncEvent event) {
+        SpellBalanceStore.loadAndApply();
+    }
+
+    private void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {
         SpellBalanceStore.loadAndApply();
     }
 }

@@ -68,7 +68,7 @@ public class PortableInscriptionTable {
     }
 
     private void onDatapackSync(OnDatapackSyncEvent event) {
-        SpellBalanceStore.applyAll();
+        SpellBalanceStore.loadAndApply();
     }
 
     private void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {

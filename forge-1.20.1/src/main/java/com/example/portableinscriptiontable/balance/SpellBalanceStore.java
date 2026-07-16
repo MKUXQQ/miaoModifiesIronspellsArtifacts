@@ -24,6 +24,7 @@ public final class SpellBalanceStore {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Path CONFIG_FILE = FMLPaths.CONFIGDIR.get().resolve("portable_inscription_table_spell_balance.json");
     private static final Map<ResourceLocation, SpellBalanceValues> OVERRIDES = new LinkedHashMap<>();
+    private static boolean loaded;
 
     private static Field castTimeField;
     private static Field manaMultiplierField;
@@ -39,6 +40,7 @@ public final class SpellBalanceStore {
     }
 
     public static List<SpellBalanceRow> snapshot() {
+        ensureLoaded();
         List<SpellBalanceRow> rows = new ArrayList<>();
         for (AbstractSpell spell : SpellRegistry.REGISTRY.get()) {
             ResourceLocation id = spell.getSpellResource();
@@ -56,6 +58,7 @@ public final class SpellBalanceStore {
     }
 
     public static void replaceAll(List<SpellBalanceRow> rows) {
+        loaded = true;
         OVERRIDES.clear();
         for (SpellBalanceRow row : rows) {
             if (SpellRegistry.getSpell(row.spellId()) != SpellRegistry.none()) {
@@ -67,6 +70,7 @@ public final class SpellBalanceStore {
     }
 
     public static void applyRowsWithoutSaving(List<SpellBalanceRow> rows) {
+        loaded = true;
         OVERRIDES.clear();
         for (SpellBalanceRow row : rows) {
             if (SpellRegistry.getSpell(row.spellId()) != SpellRegistry.none()) {
@@ -88,10 +92,12 @@ public final class SpellBalanceStore {
     }
 
     public static SpellBalanceValues valuesFor(ResourceLocation spellId) {
+        ensureLoaded();
         return OVERRIDES.get(spellId);
     }
 
     public static void applyAll() {
+        ensureLoaded();
         for (Map.Entry<ResourceLocation, SpellBalanceValues> entry : OVERRIDES.entrySet()) {
             AbstractSpell spell = SpellRegistry.getSpell(entry.getKey());
             if (spell != SpellRegistry.none()) {
@@ -109,6 +115,7 @@ public final class SpellBalanceStore {
 
     private static void load() {
         OVERRIDES.clear();
+        loaded = true;
         if (!CONFIG_FILE.toFile().exists()) {
             return;
         }
@@ -133,6 +140,12 @@ public final class SpellBalanceStore {
             }
         } catch (Exception ignored) {
             OVERRIDES.clear();
+        }
+    }
+
+    private static void ensureLoaded() {
+        if (!loaded) {
+            load();
         }
     }
 
