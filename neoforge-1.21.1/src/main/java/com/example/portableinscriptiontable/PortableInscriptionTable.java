@@ -8,9 +8,7 @@ import com.example.portableinscriptiontable.network.OpenInscriptionTableHandler;
 import com.example.portableinscriptiontable.network.OpenInscriptionTablePayload;
 import com.example.portableinscriptiontable.network.RequestSpellBalancePayload;
 import com.example.portableinscriptiontable.network.SaveSpellBalancePayload;
-import com.example.portableinscriptiontable.network.SaveSpellPoolPayload;
 import com.example.portableinscriptiontable.network.SyncSpellBalancePayload;
-import com.example.portableinscriptiontable.network.SyncSpellPoolPayload;
 import com.example.portableinscriptiontable.registry.ModItems;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
@@ -44,7 +42,7 @@ public class PortableInscriptionTable {
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(MOD_ID).versioned("1.8");
+        PayloadRegistrar registrar = event.registrar(MOD_ID).versioned("1.9");
         registrar.playToServer(
                 OpenInscriptionTablePayload.TYPE,
                 OpenInscriptionTablePayload.STREAM_CODEC,
@@ -64,16 +62,6 @@ public class PortableInscriptionTable {
                 SyncSpellBalancePayload.TYPE,
                 SyncSpellBalancePayload.STREAM_CODEC,
                 SyncSpellBalancePayload::handle
-        );
-        registrar.playToServer(
-                SaveSpellPoolPayload.TYPE,
-                SaveSpellPoolPayload.STREAM_CODEC,
-                SaveSpellPoolPayload::handle
-        );
-        registrar.playToClient(
-                SyncSpellPoolPayload.TYPE,
-                SyncSpellPoolPayload.STREAM_CODEC,
-                SyncSpellPoolPayload::handle
         );
     }
 
