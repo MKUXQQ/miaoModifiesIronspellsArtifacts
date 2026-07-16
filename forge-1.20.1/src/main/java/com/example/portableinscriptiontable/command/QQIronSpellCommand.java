@@ -1,6 +1,7 @@
 package com.example.portableinscriptiontable.command;
 
 import com.example.portableinscriptiontable.pool.RandomSpellBookFactory;
+import com.example.portableinscriptiontable.pool.SpellPoolEntry;
 import com.example.portableinscriptiontable.pool.SpellPoolStore;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -8,7 +9,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -45,7 +45,7 @@ public final class QQIronSpellCommand {
     }
 
     private static int give(CommandSourceStack source, Collection<ServerPlayer> players, int slots) {
-        List<ResourceLocation> pool = SpellPoolStore.enabledSpellIdsAcrossAllPages();
+        List<SpellPoolEntry> pool = SpellPoolStore.entriesAcrossAllPages();
         if (pool.isEmpty()) {
             source.sendFailure(Component.translatable("commands.portable_inscription_table.qqironspell.empty_pool"));
             return 0;

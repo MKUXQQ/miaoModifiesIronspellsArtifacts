@@ -35,7 +35,6 @@ public class SyncSpellBalancePayload {
                     buf.readDouble(),
                     buf.readDouble(),
                     buf.readBoolean(),
-                    buf.readDouble(),
                     buf.readDouble()
             );
             rows.add(new SpellBalanceRow(id, displayName, source, castType, values));
@@ -56,7 +55,6 @@ public class SyncSpellBalancePayload {
             buf.writeDouble(row.values().powerMultiplier());
             buf.writeBoolean(row.values().survivalAllowed());
             buf.writeDouble(row.values().projectileSpeed());
-            buf.writeDouble(row.values().durationMultiplier());
         }
     }
 

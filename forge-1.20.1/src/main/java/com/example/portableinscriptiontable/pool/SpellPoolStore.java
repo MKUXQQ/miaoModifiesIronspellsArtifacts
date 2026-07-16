@@ -3,10 +3,11 @@ package com.example.portableinscriptiontable.pool;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
-import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.SpellData;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import net.minecraft.resources.ResourceLocation;
@@ -28,10 +29,9 @@ import java.util.Set;
 
 public final class SpellPoolStore {
     public static final int CONTAINER_SIZE = 54;
-    private static final String PLACEHOLDER_TAG = "PortableInscriptionPoolPlaceholder";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Path CONFIG_FILE = FMLPaths.CONFIGDIR.get().resolve("portable_inscription_table_spell_pools.json");
-    private static final Map<Integer, Set<ResourceLocation>> PAGES = new LinkedHashMap<>();
+    private static final Map<Integer, List<SpellPoolEntry>> PAGES = new LinkedHashMap<>();
     private static boolean loaded;
 
     private SpellPoolStore() {
@@ -39,8 +39,10 @@ public final class SpellPoolStore {
 
     public static List<SpellPoolRow> snapshot(int page) {
         ensureLoaded();
-        int clampedPage = SpellPoolPage.clamp(page);
-        Set<ResourceLocation> enabled = PAGES.computeIfAbsent(clampedPage, ignored -> new LinkedHashSet<>());
+        Set<ResourceLocation> enabled = new LinkedHashSet<>();
+        for (SpellPoolEntry entry : PAGES.computeIfAbsent(SpellPoolPage.clamp(page), ignored -> new ArrayList<>())) {
+            enabled.add(entry.spellId());
+        }
         List<SpellPoolRow> rows = new ArrayList<>();
         for (AbstractSpell spell : SpellRegistry.REGISTRY.get()) {
             ResourceLocation id = spell.getSpellResource();
@@ -50,30 +52,13 @@ public final class SpellPoolStore {
         return rows;
     }
 
-    public static void replacePage(int page, List<SpellPoolRow> rows) {
+    public static List<SpellPoolEntry> entriesAcrossAllPages() {
         ensureLoaded();
-        Set<ResourceLocation> enabled = new LinkedHashSet<>();
-        for (SpellPoolRow row : rows) {
-            if (row.enabled() && SpellRegistry.getSpell(row.spellId()) != SpellRegistry.none()) {
-                enabled.add(row.spellId());
-            }
-        }
-        PAGES.put(SpellPoolPage.clamp(page), enabled);
-        save();
-    }
-
-    public static List<ResourceLocation> enabledSpellIds(int page) {
-        ensureLoaded();
-        return new ArrayList<>(PAGES.computeIfAbsent(SpellPoolPage.clamp(page), ignored -> new LinkedHashSet<>()));
-    }
-
-    public static List<ResourceLocation> enabledSpellIdsAcrossAllPages() {
-        ensureLoaded();
-        Set<ResourceLocation> ids = new LinkedHashSet<>();
+        List<SpellPoolEntry> entries = new ArrayList<>();
         for (int page = 1; page <= SpellPoolPage.PAGE_COUNT; page++) {
-            ids.addAll(PAGES.computeIfAbsent(page, ignored -> new LinkedHashSet<>()));
+            entries.addAll(PAGES.computeIfAbsent(page, ignored -> new ArrayList<>()));
         }
-        return new ArrayList<>(ids);
+        return entries;
     }
 
     public static SimpleContainer createContainer(int page) {
@@ -83,70 +68,53 @@ public final class SpellPoolStore {
             public void stopOpen(Player player) {
                 super.stopOpen(player);
                 replacePageFromItems(clampedPage, this);
-                returnUserItems(player, this);
             }
         };
-        List<ResourceLocation> ids = enabledSpellIds(clampedPage);
         int slot = 0;
-        for (ResourceLocation id : ids) {
+        for (SpellPoolEntry entry : PAGES.computeIfAbsent(clampedPage, ignored -> new ArrayList<>())) {
             if (slot >= CONTAINER_SIZE) {
                 break;
             }
-            AbstractSpell spell = SpellRegistry.getSpell(id);
-            if (spell == SpellRegistry.none()) {
-                continue;
+            AbstractSpell spell = SpellRegistry.getSpell(entry.spellId());
+            if (spell != SpellRegistry.none()) {
+                container.setItem(slot++, createScroll(spell, entry.level()));
             }
-            container.setItem(slot++, createScroll(spell));
         }
         return container;
     }
 
     public static void replacePageFromItems(int page, SimpleContainer container) {
         ensureLoaded();
-        Set<ResourceLocation> enabled = new LinkedHashSet<>();
+        List<SpellPoolEntry> entries = new ArrayList<>();
         for (int slot = 0; slot < container.getContainerSize(); slot++) {
-            enabled.addAll(spellIdsFromStack(container.getItem(slot)));
+            entries.addAll(spellEntriesFromStack(container.getItem(slot)));
         }
-        PAGES.put(SpellPoolPage.clamp(page), enabled);
+        PAGES.put(SpellPoolPage.clamp(page), entries);
         save();
     }
 
-    private static List<ResourceLocation> spellIdsFromStack(ItemStack stack) {
-        List<ResourceLocation> ids = new ArrayList<>();
+    private static List<SpellPoolEntry> spellEntriesFromStack(ItemStack stack) {
+        List<SpellPoolEntry> entries = new ArrayList<>();
         if (stack.isEmpty() || !ISpellContainer.isSpellContainer(stack)) {
-            return ids;
+            return entries;
         }
-        ISpellContainer container = ISpellContainer.get(stack);
-        for (SpellData spellData : container.getActiveSpells()) {
-            if (spellData.getSpell() != SpellRegistry.none()) {
-                ids.add(spellData.getSpell().getSpellResource());
+        for (SpellData spellData : ISpellContainer.get(stack).getActiveSpells()) {
+            AbstractSpell spell = spellData.getSpell();
+            if (spell != SpellRegistry.none()) {
+                entries.add(new SpellPoolEntry(spell.getSpellResource(), clampLevel(spell, spellData.getLevel())));
             }
         }
-        return ids;
+        return entries;
     }
 
-    private static ItemStack createScroll(AbstractSpell spell) {
+    private static ItemStack createScroll(AbstractSpell spell, int level) {
         ItemStack stack = new ItemStack(ItemRegistry.SCROLL.get());
-        ISpellContainer.createScrollContainer(spell, 1, stack);
-        stack.getOrCreateTag().putBoolean(PLACEHOLDER_TAG, true);
+        ISpellContainer.createScrollContainer(spell, clampLevel(spell, level), stack);
         return stack;
     }
 
-    private static void returnUserItems(Player player, SimpleContainer container) {
-        for (int slot = 0; slot < container.getContainerSize(); slot++) {
-            ItemStack stack = container.getItem(slot);
-            if (stack.isEmpty() || isPlaceholder(stack)) {
-                continue;
-            }
-            ItemStack returned = stack.copy();
-            if (!player.getInventory().add(returned)) {
-                player.drop(returned, false);
-            }
-        }
-    }
-
-    private static boolean isPlaceholder(ItemStack stack) {
-        return stack.hasTag() && stack.getTag().getBoolean(PLACEHOLDER_TAG);
+    private static int clampLevel(AbstractSpell spell, int level) {
+        return Math.max(1, Math.min(level, Math.max(1, spell.getMaxLevel())));
     }
 
     private static void ensureLoaded() {
@@ -159,7 +127,7 @@ public final class SpellPoolStore {
         loaded = true;
         PAGES.clear();
         for (int page = 1; page <= SpellPoolPage.PAGE_COUNT; page++) {
-            PAGES.put(page, new LinkedHashSet<>());
+            PAGES.put(page, new ArrayList<>());
         }
         if (!CONFIG_FILE.toFile().exists()) {
             return;
@@ -170,23 +138,25 @@ public final class SpellPoolStore {
                 return;
             }
             for (int page = 1; page <= SpellPoolPage.PAGE_COUNT; page++) {
-                String key = "page" + page;
-                if (!root.has(key) || !root.get(key).isJsonArray()) {
+                JsonArray array = root.getAsJsonArray("page" + page);
+                if (array == null) {
                     continue;
                 }
-                JsonArray array = root.getAsJsonArray(key);
-                Set<ResourceLocation> ids = PAGES.get(page);
-                for (int i = 0; i < array.size(); i++) {
-                    ResourceLocation id = new ResourceLocation(array.get(i).getAsString());
-                    if (SpellRegistry.getSpell(id) != SpellRegistry.none()) {
-                        ids.add(id);
+                List<SpellPoolEntry> entries = PAGES.get(page);
+                for (JsonElement element : array) {
+                    String idText = element.isJsonPrimitive() ? element.getAsString() : element.getAsJsonObject().get("spell").getAsString();
+                    ResourceLocation id = new ResourceLocation(idText);
+                    AbstractSpell spell = SpellRegistry.getSpell(id);
+                    if (spell != SpellRegistry.none()) {
+                        int level = element.isJsonPrimitive() ? 1 : element.getAsJsonObject().get("level").getAsInt();
+                        entries.add(new SpellPoolEntry(id, clampLevel(spell, level)));
                     }
                 }
             }
         } catch (Exception ignored) {
             PAGES.clear();
             for (int page = 1; page <= SpellPoolPage.PAGE_COUNT; page++) {
-                PAGES.put(page, new LinkedHashSet<>());
+                PAGES.put(page, new ArrayList<>());
             }
         }
     }
@@ -195,8 +165,11 @@ public final class SpellPoolStore {
         JsonObject root = new JsonObject();
         for (int page = 1; page <= SpellPoolPage.PAGE_COUNT; page++) {
             JsonArray array = new JsonArray();
-            for (ResourceLocation id : PAGES.computeIfAbsent(page, ignored -> new LinkedHashSet<>())) {
-                array.add(id.toString());
+            for (SpellPoolEntry entry : PAGES.computeIfAbsent(page, ignored -> new ArrayList<>())) {
+                JsonObject savedEntry = new JsonObject();
+                savedEntry.addProperty("spell", entry.spellId().toString());
+                savedEntry.addProperty("level", entry.level());
+                array.add(savedEntry);
             }
             root.add("page" + page, array);
         }

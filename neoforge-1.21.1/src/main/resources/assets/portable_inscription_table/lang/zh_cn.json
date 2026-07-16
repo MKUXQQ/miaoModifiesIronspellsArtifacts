@@ -23,7 +23,6 @@
   "screen.portable_inscription_table.column_mana": "法力倍率",
   "screen.portable_inscription_table.column_power": "威力",
   "screen.portable_inscription_table.column_projectile_speed": "速度",
-  "screen.portable_inscription_table.column_duration": "持续",
   "commands.portable_inscription_table.qqironspell.empty_pool": "5 页法术池都是空的，无法生成终焉之书",
   "commands.portable_inscription_table.qqironspell.success": "已发放 %s 本 %s",
   "itemGroup.portable_inscription_table.cat_rune_tab": "猫咪符文"

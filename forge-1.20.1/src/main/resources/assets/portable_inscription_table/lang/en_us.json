@@ -23,7 +23,6 @@
   "screen.portable_inscription_table.column_mana": "Mana Cost Multiplier",
   "screen.portable_inscription_table.column_power": "Damage",
   "screen.portable_inscription_table.column_projectile_speed": "Speed",
-  "screen.portable_inscription_table.column_duration": "Duration",
   "commands.portable_inscription_table.qqironspell.empty_pool": "All 5 spell pool pages are empty; cannot create the Finale Book",
   "commands.portable_inscription_table.qqironspell.success": "Gave %s %s book(s)",
   "itemGroup.portable_inscription_table.cat_rune_tab": "Cat Rune"

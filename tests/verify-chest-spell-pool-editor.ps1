@@ -23,6 +23,22 @@ foreach ($project in $projects) {
     if ($source -notmatch 'ChestMenu\.sixRows') {
         throw "$project random spell pool editor does not open a six-row chest"
     }
+
+    if ($source -match 'returnUserItems') {
+        throw "$project still returns spell pool items to the player"
+    }
+
+    if ($source -match 'level\.random\.nextIntBetweenInclusive') {
+        throw "$project still randomizes spell levels for finale spellbooks"
+    }
+
+    if ($source -notmatch 'SpellPoolEntry') {
+        throw "$project does not retain spell levels in its pool"
+    }
+
+    if ($source -match 'durationMultiplier|column_duration|applyDurationMultiplier') {
+        throw "$project still contains the removed duration control"
+    }
 }
 
 Write-Output 'Chest spell pool editor source check passed.'

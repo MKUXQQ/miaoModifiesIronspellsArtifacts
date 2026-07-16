@@ -42,7 +42,7 @@ public class PortableInscriptionTable {
     }
 
     private void registerPayloads(RegisterPayloadHandlersEvent event) {
-        PayloadRegistrar registrar = event.registrar(MOD_ID).versioned("1.9");
+        PayloadRegistrar registrar = event.registrar(MOD_ID).versioned("2.1");
         registrar.playToServer(
                 OpenInscriptionTablePayload.TYPE,
                 OpenInscriptionTablePayload.STREAM_CODEC,

@@ -15,7 +15,6 @@ import net.neoforged.fml.loading.FMLPaths;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,7 +26,6 @@ public final class SpellBalanceStore {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Path CONFIG_FILE = FMLPaths.CONFIGDIR.get().resolve("portable_inscription_table_spell_balance.json");
     private static final Map<ResourceLocation, SpellBalanceValues> OVERRIDES = new LinkedHashMap<>();
-    private static final Map<String, Number> DURATION_BASELINES = new LinkedHashMap<>();
     private static boolean loaded;
 
     private static Field castTimeField;
@@ -94,7 +92,6 @@ public final class SpellBalanceStore {
                 SpellConfigManager.getSpellConfigValue(spell, SpellConfigParameter.MANA_MULTIPLIER),
                 SpellConfigManager.getSpellConfigValue(spell, SpellConfigParameter.POWER_MULTIPLIER),
                 true,
-                1.0,
                 1.0
         );
     }
@@ -117,7 +114,6 @@ public final class SpellBalanceStore {
             holder.set(SpellConfigParameter.MANA_MULTIPLIER, values.manaCostMultiplier());
             holder.set(SpellConfigParameter.POWER_MULTIPLIER, values.powerMultiplier());
         }
-        applyDurationMultiplier(spell, values.durationMultiplier());
     }
 
     private static void load() {
@@ -142,8 +138,7 @@ public final class SpellBalanceStore {
                         json.has("manaCostMultiplier") ? json.get("manaCostMultiplier").getAsDouble() : 1.0,
                         json.has("powerMultiplier") ? json.get("powerMultiplier").getAsDouble() : 1.0,
                         json.has("survivalAllowed") ? json.get("survivalAllowed").getAsBoolean() : true,
-                        json.has("projectileSpeed") ? json.get("projectileSpeed").getAsDouble() : 1.0,
-                        json.has("durationMultiplier") ? json.get("durationMultiplier").getAsDouble() : 1.0
+                        json.has("projectileSpeed") ? json.get("projectileSpeed").getAsDouble() : 1.0
                 ));
             }
         } catch (Exception ignored) {
@@ -168,7 +163,6 @@ public final class SpellBalanceStore {
             json.addProperty("powerMultiplier", values.powerMultiplier());
             json.addProperty("survivalAllowed", values.survivalAllowed());
             json.addProperty("projectileSpeed", values.projectileSpeed());
-            json.addProperty("durationMultiplier", values.durationMultiplier());
             root.add(entry.getKey().toString(), json);
         }
         try {
@@ -188,59 +182,6 @@ public final class SpellBalanceStore {
             }
             castTimeField.setInt(spell, ticks);
         } catch (Exception ignored) {
-        }
-    }
-
-    private static void applyDurationMultiplier(AbstractSpell spell, double multiplier) {
-        Class<?> type = spell.getClass();
-        while (type != null && AbstractSpell.class.isAssignableFrom(type)) {
-            for (Field field : type.getDeclaredFields()) {
-                if (!isDurationField(field)) {
-                    continue;
-                }
-                try {
-                    field.setAccessible(true);
-                    String key = spell.getSpellResource() + "|" + field.getDeclaringClass().getName() + "#" + field.getName();
-                    Number base = DURATION_BASELINES.computeIfAbsent(key, ignored -> readNumber(field, spell));
-                    writeNumber(field, spell, base, multiplier);
-                } catch (Exception ignored) {
-                }
-            }
-            type = type.getSuperclass();
-        }
-    }
-
-    private static boolean isDurationField(Field field) {
-        int modifiers = field.getModifiers();
-        if (Modifier.isStatic(modifiers) || Modifier.isFinal(modifiers)) {
-            return false;
-        }
-        String name = field.getName().toLowerCase();
-        Class<?> type = field.getType();
-        return name.contains("duration")
-                && (type == int.class || type == long.class || type == float.class || type == double.class);
-    }
-
-    private static Number readNumber(Field field, Object target) {
-        try {
-            Object value = field.get(target);
-            return value instanceof Number number ? number : 0;
-        } catch (Exception ignored) {
-            return 0;
-        }
-    }
-
-    private static void writeNumber(Field field, Object target, Number base, double multiplier) throws IllegalAccessException {
-        Class<?> type = field.getType();
-        double value = Math.max(0.0, base.doubleValue() * multiplier);
-        if (type == int.class) {
-            field.setInt(target, (int) Math.round(value));
-        } else if (type == long.class) {
-            field.setLong(target, Math.round(value));
-        } else if (type == float.class) {
-            field.setFloat(target, (float) value);
-        } else if (type == double.class) {
-            field.setDouble(target, value);
         }
     }
 

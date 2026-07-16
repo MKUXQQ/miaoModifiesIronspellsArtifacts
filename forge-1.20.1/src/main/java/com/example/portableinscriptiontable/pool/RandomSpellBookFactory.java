@@ -5,7 +5,6 @@ import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
 import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 
@@ -18,23 +17,22 @@ public final class RandomSpellBookFactory {
     private RandomSpellBookFactory() {
     }
 
-    public static ItemStack create(ServerLevel level, int slots, List<ResourceLocation> pool) {
+    public static ItemStack create(ServerLevel level, int slots, List<SpellPoolEntry> pool) {
         int clampedSlots = Math.max(1, slots);
         ItemStack stack = new ItemStack(ItemRegistry.WIMPY_SPELL_BOOK.get());
         ISpellContainer container = ISpellContainer.create(clampedSlots, true, true);
-        List<ResourceLocation> shuffled = new ArrayList<>(pool);
+        List<SpellPoolEntry> shuffled = new ArrayList<>(pool);
         shuffle(level, shuffled);
         int added = 0;
-        for (ResourceLocation id : shuffled) {
+        for (SpellPoolEntry entry : shuffled) {
             if (added >= clampedSlots) {
                 break;
             }
-            AbstractSpell spell = SpellRegistry.getSpell(id);
+            AbstractSpell spell = SpellRegistry.getSpell(entry.spellId());
             if (spell == SpellRegistry.none()) {
                 continue;
             }
-            int levelRoll = level.random.nextIntBetweenInclusive(1, Math.max(1, spell.getMaxLevel()));
-            if (container.addSpell(spell, levelRoll, false, null)) {
+            if (container.addSpell(spell, entry.level(), false, null)) {
                 added++;
             }
         }
@@ -43,10 +41,10 @@ public final class RandomSpellBookFactory {
         return stack;
     }
 
-    private static void shuffle(ServerLevel level, List<ResourceLocation> ids) {
+    private static void shuffle(ServerLevel level, List<SpellPoolEntry> ids) {
         for (int i = ids.size() - 1; i > 0; i--) {
             int j = level.random.nextInt(i + 1);
-            ResourceLocation value = ids.get(i);
+            SpellPoolEntry value = ids.get(i);
             ids.set(i, ids.get(j));
             ids.set(j, value);
         }
