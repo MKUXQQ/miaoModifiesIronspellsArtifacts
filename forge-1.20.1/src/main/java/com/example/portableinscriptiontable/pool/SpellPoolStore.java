@@ -5,8 +5,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.redspace.ironsspellbooks.api.registry.SpellRegistry;
+import io.redspace.ironsspellbooks.api.spells.ISpellContainer;
 import io.redspace.ironsspellbooks.api.spells.AbstractSpell;
+import io.redspace.ironsspellbooks.api.spells.SpellData;
+import io.redspace.ironsspellbooks.registries.ItemRegistry;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.FileReader;
@@ -21,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 
 public final class SpellPoolStore {
+    public static final int CONTAINER_SIZE = 54;
+    private static final String PLACEHOLDER_TAG = "PortableInscriptionPoolPlaceholder";
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
     private static final Path CONFIG_FILE = FMLPaths.CONFIGDIR.get().resolve("portable_inscription_table_spell_pools.json");
     private static final Map<Integer, Set<ResourceLocation>> PAGES = new LinkedHashMap<>();
@@ -66,6 +74,79 @@ public final class SpellPoolStore {
             ids.addAll(PAGES.computeIfAbsent(page, ignored -> new LinkedHashSet<>()));
         }
         return new ArrayList<>(ids);
+    }
+
+    public static SimpleContainer createContainer(int page) {
+        int clampedPage = SpellPoolPage.clamp(page);
+        SimpleContainer container = new SimpleContainer(CONTAINER_SIZE) {
+            @Override
+            public void stopOpen(Player player) {
+                super.stopOpen(player);
+                replacePageFromItems(clampedPage, this);
+                returnUserItems(player, this);
+            }
+        };
+        List<ResourceLocation> ids = enabledSpellIds(clampedPage);
+        int slot = 0;
+        for (ResourceLocation id : ids) {
+            if (slot >= CONTAINER_SIZE) {
+                break;
+            }
+            AbstractSpell spell = SpellRegistry.getSpell(id);
+            if (spell == SpellRegistry.none()) {
+                continue;
+            }
+            container.setItem(slot++, createScroll(spell));
+        }
+        return container;
+    }
+
+    public static void replacePageFromItems(int page, SimpleContainer container) {
+        ensureLoaded();
+        Set<ResourceLocation> enabled = new LinkedHashSet<>();
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            enabled.addAll(spellIdsFromStack(container.getItem(slot)));
+        }
+        PAGES.put(SpellPoolPage.clamp(page), enabled);
+        save();
+    }
+
+    private static List<ResourceLocation> spellIdsFromStack(ItemStack stack) {
+        List<ResourceLocation> ids = new ArrayList<>();
+        if (stack.isEmpty() || !ISpellContainer.isSpellContainer(stack)) {
+            return ids;
+        }
+        ISpellContainer container = ISpellContainer.get(stack);
+        for (SpellData spellData : container.getActiveSpells()) {
+            if (spellData.getSpell() != SpellRegistry.none()) {
+                ids.add(spellData.getSpell().getSpellResource());
+            }
+        }
+        return ids;
+    }
+
+    private static ItemStack createScroll(AbstractSpell spell) {
+        ItemStack stack = new ItemStack(ItemRegistry.SCROLL.get());
+        ISpellContainer.createScrollContainer(spell, 1, stack);
+        stack.getOrCreateTag().putBoolean(PLACEHOLDER_TAG, true);
+        return stack;
+    }
+
+    private static void returnUserItems(Player player, SimpleContainer container) {
+        for (int slot = 0; slot < container.getContainerSize(); slot++) {
+            ItemStack stack = container.getItem(slot);
+            if (stack.isEmpty() || isPlaceholder(stack)) {
+                continue;
+            }
+            ItemStack returned = stack.copy();
+            if (!player.getInventory().add(returned)) {
+                player.drop(returned, false);
+            }
+        }
+    }
+
+    private static boolean isPlaceholder(ItemStack stack) {
+        return stack.hasTag() && stack.getTag().getBoolean(PLACEHOLDER_TAG);
     }
 
     private static void ensureLoaded() {

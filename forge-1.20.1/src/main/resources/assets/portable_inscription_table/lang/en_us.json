@@ -4,7 +4,7 @@
   "item.portable_inscription_table.cat_rune": "Cat Rune",
   "item.portable_inscription_table.cat_rune.desc": "Right-click to open the spell balance editor",
   "item.portable_inscription_table.random_spell_pool_editor": "Finale Spell Pool Editor",
-  "item.portable_inscription_table.random_spell_pool_editor.desc": "Right-click to edit the current spell pool; sneak-right-click to switch 5 pages",
+  "item.portable_inscription_table.random_spell_pool_editor.desc": "Right-click to open a large chest; add scrolls/spell books and close to save; sneak-right-click switches 5 pages",
   "item.portable_inscription_table.random_spell_pool_editor.page": "Current spell pool: page %s",
   "spell.portable_inscription_table.survival_disabled": "This spell is disabled in Survival",
   "screen.portable_inscription_table.spell_balance": "Spell Balance Editor",

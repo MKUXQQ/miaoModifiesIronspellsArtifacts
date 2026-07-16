@@ -4,7 +4,7 @@
   "item.portable_inscription_table.cat_rune": "猫咪符文",
   "item.portable_inscription_table.cat_rune.desc": "右键打开法术数值修改器",
   "item.portable_inscription_table.random_spell_pool_editor": "终焉法术池编辑器",
-  "item.portable_inscription_table.random_spell_pool_editor.desc": "右键编辑当前法术池；蹲下右键切换 5 页池子",
+  "item.portable_inscription_table.random_spell_pool_editor.desc": "右键打开大箱子；放入法术卷轴/法术书后关闭自动保存；蹲下右键切换 5 页池子",
   "item.portable_inscription_table.random_spell_pool_editor.page": "当前法术池：第 %s 页",
   "spell.portable_inscription_table.survival_disabled": "该法术已在生存模式禁用",
   "screen.portable_inscription_table.spell_balance": "法术数值修改器",

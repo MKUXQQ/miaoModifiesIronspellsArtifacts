@@ -22,6 +22,7 @@ public final class OpenInscriptionTablePayloadCheck {
         catRuneCreativeTabUsesStableId();
         spellPoolPageClampsLowValues();
         spellPoolPageClampsHighValues();
+        spellPoolPageWrapsAfterFifthPage();
         ResourceLocation id = ModNetworkIds.OPEN_INSCRIPTION_TABLE;
 
         assertEquals("portable_inscription_table", id.getNamespace(), "payload namespace");
@@ -86,6 +87,10 @@ public final class OpenInscriptionTablePayloadCheck {
 
     private static void spellPoolPageClampsHighValues() {
         assertEquals(5, SpellPoolPage.clamp(99), "spell pool high page clamp");
+    }
+
+    private static void spellPoolPageWrapsAfterFifthPage() {
+        assertEquals(1, SpellPoolPage.next(5), "spell pool page wraps after fifth page");
     }
 
     private static void assertEquals(String expected, String actual, String label) {

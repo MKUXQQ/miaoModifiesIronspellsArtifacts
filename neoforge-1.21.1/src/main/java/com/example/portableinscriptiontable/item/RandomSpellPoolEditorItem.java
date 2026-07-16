@@ -1,6 +1,5 @@
 package com.example.portableinscriptiontable.item;
 
-import com.example.portableinscriptiontable.network.SyncSpellPoolPayload;
 import com.example.portableinscriptiontable.pool.SpellPoolPage;
 import com.example.portableinscriptiontable.pool.SpellPoolStore;
 import net.minecraft.ChatFormatting;
@@ -8,15 +7,16 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
 
@@ -37,7 +37,11 @@ public class RandomSpellPoolEditorItem extends Item {
                 setPage(stack, page);
                 player.displayClientMessage(Component.translatable("item.portable_inscription_table.random_spell_pool_editor.page", page), true);
             } else {
-                PacketDistributor.sendToPlayer(serverPlayer, new SyncSpellPoolPayload(page, SpellPoolStore.snapshot(page), true));
+                int openPage = page;
+                serverPlayer.openMenu(new SimpleMenuProvider(
+                        (id, inventory, ignored) -> ChestMenu.sixRows(id, inventory, SpellPoolStore.createContainer(openPage)),
+                        Component.translatable("screen.portable_inscription_table.spell_pool_page", openPage)
+                ));
             }
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
