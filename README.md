@@ -1,21 +1,5 @@
-【Minecraft Cat Modifier】— Dedicated Config Tool for Iron’s Spells ’n Spellbooks
+# miaoModifiesIronspellsArtifacts
 
-This add-on mod is designed for Iron’s Spells ’n Spellbooks, allowing players and server owners to customize core spell parameters with greater precision.
+本项目不提供源代码。
 
-📊 Configurable Parameters:
-
-Cast Time — Adjust spell casting duration with tick-level precision.
-
-Spell Power — Modify spell damage multipliers with decimal accuracy.
-
-Cooldown — Set custom recovery times for each skill.
-
-Mana Cost — Fine-tune mana consumption for better gameplay balance.
-
-⚙️ Suitable For:
-
-Single-player custom difficulty setups.
-
-Server-side balance adjustments.
-
-Custom map mechanics and special gameplay designs.
+请在 [Releases](https://github.com/MKUXQQ/miaoModifiesIronspellsArtifacts/releases) 下载对应 Minecraft 版本的 jar 文件。
